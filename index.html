@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prem's 30-Day SQL Boot Camp</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,400;0,500;1,400&family=Bricolage+Grotesque:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f0e8;
+  --paper: #faf7f2;
+  --ink: #1a1410;
+  --ink2: #3d3530;
+  --muted: #8a7e74;
+  --border: #d8cfc4;
+  --accent: #c0392b;
+  --accent2: #e74c3c;
+  --blue: #2c6ea6;
+  --green: #27ae60;
+  --yellow: #f39c12;
+  --purple: #7c3aed;
+  --sql-bg: #1a1410;
+  --sql-text: #a8e6cf;
+  --sql-keyword: #ff9f43;
+  --sql-string: #54a0ff;
+  --sql-comment: #636e72;
+  --sql-number: #5f27cd;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--ink); font-family: 'Bricolage Grotesque', sans-serif; min-height: 100vh; }
+
+/* GRAIN OVERLAY */
+body::before {
+  content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 999;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  opacity: 0.5;
+}
+
+/* HEADER */
+.header {
+  background: var(--ink); color: var(--bg);
+  padding: 0 32px; display: flex; align-items: stretch; min-height: 64px;
+  border-bottom: 3px solid var(--accent);
+}
+.header-brand { display: flex; align-items: center; gap: 12px; padding: 0 24px 0 0; border-right: 1px solid #333; }
+.header-brand h1 { font-size: 1rem; font-weight: 800; letter-spacing: -0.3px; }
+.header-brand span { background: var(--accent); color: #fff; font-size: 0.65rem; font-weight: 700; padding: 2px 7px; border-radius: 3px; text-transform: uppercase; letter-spacing: 1px; }
+.header-nav { display: flex; align-items: center; gap: 2px; padding: 0 24px; flex: 1; overflow-x: auto; }
+.nav-btn { padding: 6px 14px; border-radius: 5px; border: none; background: transparent; color: #888; font-family: 'Bricolage Grotesque', sans-serif; font-size: 0.78rem; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+.nav-btn:hover { color: #fff; }
+.nav-btn.active { background: var(--accent); color: #fff; }
+.header-progress { display: flex; align-items: center; gap: 10px; padding-left: 16px; border-left: 1px solid #333; }
+.progress-text { font-size: 0.72rem; color: #888; font-family: 'DM Mono', monospace; white-space: nowrap; }
+.progress-bar-sm { width: 80px; height: 6px; background: #333; border-radius: 99px; overflow: hidden; }
+.progress-fill-sm { height: 100%; background: var(--accent); border-radius: 99px; width: 3%; }
+
+/* LAYOUT */
+.layout { display: grid; grid-template-columns: 280px 1fr; min-height: calc(100vh - 67px); }
+
+/* SIDEBAR */
+.sidebar {
+  background: var(--paper); border-right: 1px solid var(--border);
+  overflow-y: auto; max-height: calc(100vh - 67px); position: sticky; top: 67px;
+}
+.sidebar-section { padding: 16px 16px 8px; border-bottom: 1px solid var(--border); }
+.sidebar-section-title { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700; color: var(--muted); margin-bottom: 10px; }
+
+.week-header {
+  display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 6px;
+  cursor: pointer; margin-bottom: 4px;
+}
+.week-badge { width: 28px; height: 28px; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 0.68rem; font-weight: 800; flex-shrink: 0; }
+.wb1 { background: #fef3c7; color: #92400e; }
+.wb2 { background: #dbeafe; color: #1e40af; }
+.wb3 { background: #d1fae5; color: #065f46; }
+.wb4 { background: #fce7f3; color: #9d174d; }
+.week-header h4 { font-size: 0.78rem; font-weight: 700; }
+.week-header p { font-size: 0.65rem; color: var(--muted); }
+
+.day-btn {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%; padding: 7px 10px 7px 14px;
+  background: transparent; border: none; border-radius: 5px;
+  cursor: pointer; text-align: left; font-family: 'Bricolage Grotesque', sans-serif;
+  transition: background 0.1s; margin-bottom: 1px;
+}
+.day-btn:hover { background: var(--border); }
+.day-btn.active { background: var(--ink); color: white; }
+.day-btn .day-num { font-size: 0.65rem; font-family: 'DM Mono', monospace; color: var(--muted); width: 28px; flex-shrink: 0; }
+.day-btn.active .day-num { color: #999; }
+.day-btn .day-title { font-size: 0.78rem; font-weight: 500; }
+.day-btn .day-status { margin-left: auto; font-size: 0.7rem; }
+.day-btn.done { opacity: 0.6; }
+
+/* MAIN CONTENT */
+.main-content { padding: 32px 36px; overflow-y: auto; max-height: calc(100vh - 67px); }
+
+/* PAGE SECTIONS */
+.page-section { display: none; }
+.page-section.active { display: block; }
+
+/* DAY CONTENT */
+.day-header { margin-bottom: 28px; }
+.day-header .day-label { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.day-chip { font-size: 0.65rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; padding: 4px 12px; border-radius: 3px; }
+.dc-sql { background: var(--accent); color: white; }
+.dc-week { background: var(--ink); color: white; }
+.day-header h2 { font-size: 1.8rem; font-weight: 800; letter-spacing: -0.8px; line-height: 1.1; margin-bottom: 8px; }
+.day-header p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; max-width: 680px; }
+
+/* LESSON CARD */
+.lesson-card {
+  background: var(--paper); border: 1px solid var(--border);
+  border-radius: 10px; margin-bottom: 20px; overflow: hidden;
+}
+.lesson-card-head {
+  background: var(--ink); color: var(--bg); padding: 14px 20px;
+  display: flex; align-items: center; gap: 10px;
+}
+.lesson-icon { font-size: 1.2rem; }
+.lesson-card-head h3 { font-size: 0.88rem; font-weight: 700; }
+.lesson-card-head span { margin-left: auto; font-size: 0.68rem; font-family: 'DM Mono', monospace; color: #888; }
+.lesson-card-body { padding: 20px; }
+.lesson-card-body p { font-size: 0.85rem; line-height: 1.7; color: var(--ink2); margin-bottom: 12px; }
+.lesson-card-body p:last-child { margin-bottom: 0; }
+
+/* SQL CODE BLOCK */
+.sql-block {
+  background: var(--sql-bg); border-radius: 8px; padding: 18px 20px;
+  font-family: 'DM Mono', monospace; font-size: 0.82rem; line-height: 1.7;
+  margin: 12px 0; overflow-x: auto; position: relative;
+}
+.sql-block .sql-label { font-size: 0.58rem; color: #555; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.kw { color: var(--sql-keyword); font-weight: 500; }
+.str { color: var(--sql-string); }
+.cmt { color: var(--sql-comment); font-style: italic; }
+.num { color: #c0392b; }
+.fn { color: #a29bfe; }
+.tbl { color: #fdcb6e; }
+.col { color: var(--sql-text); }
+.copy-btn { position: absolute; top: 10px; right: 10px; background: #333; border: none; color: #aaa; padding: 4px 10px; border-radius: 4px; font-size: 0.65rem; cursor: pointer; font-family: 'DM Mono', monospace; transition: all 0.2s; }
+.copy-btn:hover { background: var(--accent); color: white; }
+
+/* TRY SECTION */
+.try-block {
+  background: #fffbf5; border: 2px dashed var(--border); border-radius: 8px;
+  padding: 16px 18px; margin: 12px 0;
+}
+.try-block h4 { font-size: 0.78rem; font-weight: 700; color: var(--accent); margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.try-block p { font-size: 0.8rem; color: var(--ink2); line-height: 1.6; }
+.try-block textarea {
+  width: 100%; margin-top: 10px; background: var(--sql-bg); color: var(--sql-text);
+  font-family: 'DM Mono', monospace; font-size: 0.8rem; padding: 12px 14px;
+  border: 1px solid #333; border-radius: 6px; resize: vertical; min-height: 80px;
+  outline: none;
+}
+.run-btn { margin-top: 8px; background: var(--accent); color: white; border: none; padding: 8px 20px; border-radius: 5px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: all 0.15s; }
+.run-btn:hover { background: #a93226; }
+
+/* SCENARIO BLOCK */
+.scenario-block {
+  background: #f0f7ff; border: 1px solid #bee3f8; border-left: 4px solid var(--blue);
+  border-radius: 8px; padding: 16px 18px; margin: 12px 0;
+}
+.scenario-block h4 { font-size: 0.78rem; font-weight: 700; color: var(--blue); margin-bottom: 6px; }
+.scenario-block p { font-size: 0.82rem; color: #2c5282; line-height: 1.6; }
+.scenario-block .requester { font-size: 0.72rem; color: #4a5568; font-family: 'DM Mono', monospace; margin-top: 8px; }
+
+/* TABLE DISPLAY */
+.db-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin: 10px 0; }
+.db-table th { background: var(--ink); color: white; padding: 8px 12px; text-align: left; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px; }
+.db-table td { padding: 7px 12px; border-bottom: 1px solid var(--border); font-family: 'DM Mono', monospace; }
+.db-table tr:nth-child(even) td { background: rgba(0,0,0,0.02); }
+
+/* COMPANY CARD */
+.company-card {
+  background: var(--ink); color: white; border-radius: 10px; padding: 20px 24px;
+  margin-bottom: 20px;
+}
+.company-card h3 { font-size: 1.1rem; font-weight: 800; color: var(--accent2); margin-bottom: 4px; }
+.company-card .company-type { font-size: 0.72rem; color: #888; margin-bottom: 12px; font-family: 'DM Mono', monospace; }
+.company-card .dept-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+.dept-item { background: #222; border-radius: 6px; padding: 8px 10px; }
+.dept-item .dept-name { font-size: 0.68rem; color: #888; text-transform: uppercase; letter-spacing: 0.5px; }
+.dept-item .dept-val { font-size: 0.88rem; font-weight: 700; }
+
+/* PROGRESS SECTION */
+.roadmap-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-bottom: 24px; }
+.week-card { border-radius: 10px; padding: 18px 18px 16px; border: 1px solid var(--border); }
+.wk1 { background: #fffbeb; border-color: #fcd34d; }
+.wk2 { background: #eff6ff; border-color: #93c5fd; }
+.wk3 { background: #f0fdf4; border-color: #86efac; }
+.wk4 { background: #fdf4ff; border-color: #d8b4fe; }
+.week-card h4 { font-size: 0.82rem; font-weight: 800; margin-bottom: 4px; }
+.week-card .week-theme { font-size: 0.7rem; color: var(--muted); margin-bottom: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+.week-day-pills { display: flex; flex-wrap: wrap; gap: 4px; }
+.day-pill { width: 26px; height: 26px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.62rem; font-weight: 700; font-family: 'DM Mono', monospace; cursor: pointer; border: 1px solid transparent; transition: all 0.15s; }
+.dp-todo { background: var(--border); color: var(--muted); }
+.dp-todo:hover { background: var(--ink); color: white; }
+.dp-active { background: var(--accent); color: white; }
+
+/* RESULT BLOCK */
+.result-block {
+  background: #f0fdf4; border: 1px solid #86efac; border-left: 4px solid var(--green);
+  border-radius: 8px; padding: 14px 16px; margin-top: 10px; display: none;
+}
+.result-block h4 { font-size: 0.75rem; font-weight: 700; color: var(--green); margin-bottom: 6px; }
+.result-block p { font-size: 0.8rem; color: #065f46; line-height: 1.6; }
+
+/* INTERVIEW SECTION */
+.interview-q {
+  border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden;
+}
+.interview-q-head {
+  padding: 12px 16px; background: var(--paper); cursor: pointer;
+  display: flex; justify-content: space-between; align-items: center;
+  font-size: 0.85rem; font-weight: 600;
+}
+.interview-q-head:hover { background: var(--border); }
+.interview-q-body { padding: 14px 16px; border-top: 1px solid var(--border); background: white; display: none; font-size: 0.82rem; line-height: 1.65; color: var(--ink2); }
+
+/* CHECKPOINT */
+.checkpoint {
+  background: linear-gradient(135deg, var(--ink) 0%, #2d2520 100%);
+  color: white; border-radius: 10px; padding: 20px 24px; margin-top: 20px;
+}
+.checkpoint h4 { font-size: 0.88rem; font-weight: 800; color: var(--accent2); margin-bottom: 10px; }
+.checkpoint ul { list-style: none; }
+.checkpoint ul li { font-size: 0.8rem; color: #ccc; padding: 4px 0; display: flex; gap: 8px; align-items: flex-start; line-height: 1.5; }
+.checkpoint ul li::before { content: '□'; color: var(--accent); flex-shrink: 0; }
+.checkpoint .mark-done-btn { margin-top: 14px; background: var(--accent); border: none; color: white; padding: 8px 20px; border-radius: 5px; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 0.8rem; cursor: pointer; }
+
+/* INFO BOX */
+.info-box { display: flex; gap: 10px; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 8px; padding: 12px 14px; margin: 10px 0; }
+.info-box .info-icon { font-size: 1rem; flex-shrink: 0; }
+.info-box p { font-size: 0.8rem; color: #92400e; line-height: 1.6; }
+
+/* PYTHON BLOCK */
+.python-block { background: #1a1a2e; border-radius: 8px; padding: 16px 18px; font-family: 'DM Mono', monospace; font-size: 0.8rem; line-height: 1.7; margin: 10px 0; }
+.py-kw { color: #e056fd; }
+.py-fn { color: #01d28e; }
+.py-str { color: #f9ca24; }
+.py-num { color: #f0932b; }
+.py-cmt { color: #636e72; font-style: italic; }
+.py-var { color: #7ed6df; }
+
+/* NAV BUTTONS */
+.nav-row { display: flex; gap: 10px; margin-top: 28px; padding-top: 20px; border-top: 1px solid var(--border); }
+.prev-btn { padding: 10px 20px; border-radius: 6px; border: 1px solid var(--border); background: white; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 0.82rem; cursor: pointer; }
+.next-btn { padding: 10px 24px; border-radius: 6px; border: none; background: var(--ink); color: white; font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 0.82rem; cursor: pointer; }
+.next-btn:hover { background: var(--accent); }
+
+/* ASSESSMENT */
+.assess-opt { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+.assess-opt label { display: flex; align-items: flex-start; gap: 10px; padding: 10px 14px; border: 1px solid var(--border); border-radius: 7px; cursor: pointer; font-size: 0.82rem; line-height: 1.5; background: white; transition: all 0.15s; }
+.assess-opt label:hover { border-color: var(--accent); background: #fff5f5; }
+.assess-opt input { margin-top: 2px; accent-color: var(--accent); flex-shrink: 0; }
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .layout { grid-template-columns: 1fr; }
+  .sidebar { max-height: 220px; position: relative; top: 0; }
+  .main-content { padding: 20px 16px; }
+  .header { padding: 0 16px; }
+}
+
+.hidden { display: none !important; }
+.tag { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.68rem; font-weight: 700; margin-right: 4px; }
+.tag-sql { background: #fef3c7; color: #92400e; }
+.tag-itil { background: #dbeafe; color: #1e40af; }
+.tag-py { background: #fce7f3; color: #9d174d; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-brand">
+    <div>
+      <h1>Prem's SQL Boot Camp</h1>
+    </div>
+    <span>30 Days</span>
+  </div>
+  <div class="header-nav">
+    <button class="nav-btn active" onclick="showSection('assessment')">📋 Assessment</button>
+    <button class="nav-btn" onclick="showSection('roadmap')">🗺️ Roadmap</button>
+    <button class="nav-btn" onclick="showSection('company')">🏢 MockCo</button>
+    <button class="nav-btn" onclick="showSection('day1')">Day 1</button>
+    <button class="nav-btn" onclick="showSection('day2')">Day 2</button>
+    <button class="nav-btn" onclick="showSection('day3')">Day 3</button>
+    <button class="nav-btn" onclick="showSection('day4')">Day 4</button>
+    <button class="nav-btn" onclick="showSection('day5')">Day 5</button>
+    <button class="nav-btn" onclick="showSection('day6')">Day 6</button>
+    <button class="nav-btn" onclick="showSection('day7')">Day 7</button>
+    <button class="nav-btn" onclick="showSection('interview')">🎤 Interview Prep</button>
+  </div>
+  <div class="header-progress">
+    <span class="progress-text" id="progressText">Day 0/30</span>
+    <div class="progress-bar-sm"><div class="progress-fill-sm" id="progressFill"></div></div>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Week 1 — SQL Foundations</div>
+      <div class="week-header"><div class="week-badge wb1">W1</div><div><h4>SQL Basics</h4><p>SELECT to GROUP BY</p></div></div>
+      <button class="day-btn active" onclick="showSection('day1');setActive(this)"><span class="day-num">D01</span><span class="day-title">SELECT & WHERE</span><span class="day-status">📖</span></button>
+      <button class="day-btn" onclick="showSection('day2');setActive(this)"><span class="day-num">D02</span><span class="day-title">ORDER BY & LIMIT</span><span class="day-status">🔒</span></button>
+      <button class="day-btn" onclick="showSection('day3');setActive(this)"><span class="day-num">D03</span><span class="day-title">DISTINCT & COUNT</span><span class="day-status">🔒</span></button>
+      <button class="day-btn" onclick="showSection('day4');setActive(this)"><span class="day-num">D04</span><span class="day-title">SUM, AVG, MIN, MAX</span><span class="day-status">🔒</span></button>
+      <button class="day-btn" onclick="showSection('day5');setActive(this)"><span class="day-num">D05</span><span class="day-title">LIKE, IN, BETWEEN</span><span class="day-status">🔒</span></button>
+      <button class="day-btn" onclick="showSection('day6');setActive(this)"><span class="day-num">D06</span><span class="day-title">GROUP BY & HAVING</span><span class="day-status">🔒</span></button>
+      <button class="day-btn" onclick="showSection('day7');setActive(this)"><span class="day-num">D07</span><span class="day-title">Week 1 Review + Mini Project</span><span class="day-status">🔒</span></button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Week 2 — JOINs & Advanced</div>
+      <div class="week-header"><div class="week-badge wb2">W2</div><div><h4>JOINs + Subqueries</h4><p>Multi-table queries</p></div></div>
+      <button class="day-btn" onclick="alert('Complete Week 1 first!')"><span class="day-num">D08</span><span class="day-title">INNER JOIN</span><span class="day-status">🔒</span></button>
+      <button class="day-btn" onclick="alert('Complete Week 1 first!')"><span class="day-num">D09</span><span class="day-title">LEFT JOIN</span><span class="day-status">🔒</span></button>
+      <button class="day-btn" onclick="alert('Complete Week 1 first!')"><span class="day-num">D10</span><span class="day-title">Multiple JOINs</span><span class="day-status">🔒</span></button>
+      <button class="day-btn" onclick="alert('Complete Week 1 first!')"><span class="day-num">D11</span><span class="day-title">Subqueries</span><span class="day-status">🔒</span></button>
+      <button class="day-btn" onclick="alert('Complete Week 1 first!')"><span class="day-num">D12</span><span class="day-title">CASE Statements</span><span class="day-status">🔒</span></button>
+      <button class="day-btn" onclick="alert('Complete Week 1 first!')"><span class="day-num">D13</span><span class="day-title">UNION</span><span class="day-status">🔒</span></button>
+      <button class="day-btn" onclick="alert('Complete Week 1 first!')"><span class="day-num">D14</span><span class="day-title">Week 2 Review</span><span class="day-status">🔒</span></button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Week 3 — Real Work SQL</div>
+      <div class="week-header"><div class="week-badge wb3">W3</div><div><h4>Reporting & Analysis</h4><p>Real company tasks</p></div></div>
+      <button class="day-btn" onclick="alert('Complete Week 2 first!')"><span class="day-num">D15</span><span class="day-title">Ticket Analysis Report</span><span class="day-status">🔒</span></button>
+      <button class="day-btn" onclick="alert('Complete Week 2 first!')"><span class="day-num">D16</span><span class="day-title">Duplicate Detection</span><span class="day-status">🔒</span></button>
+      <button class="day-btn" onclick="alert('Complete Week 2 first!')"><span class="day-num">D17</span><span class="day-title">SLA Breach Report</span><span class="day-status">🔒</span></button>
+      <button class="day-btn" onclick="alert('Complete Week 2 first!')"><span class="day-num">D18</span><span class="day-title">User Activity Analysis</span><span class="day-status">🔒</span></button>
+      <button class="day-btn" onclick="alert('Complete Week 2 first!')"><span class="day-num">D19</span><span class="day-title">Incident Summary</span><span class="day-status">🔒</span></button>
+      <button class="day-btn" onclick="alert('Complete Week 2 first!')"><span class="day-num">D20</span><span class="day-title">Dashboard Queries</span><span class="day-status">🔒</span></button>
+      <button class="day-btn" onclick="alert('Complete Week 2 first!')"><span class="day-num">D21</span><span class="day-title">Week 3 Project</span><span class="day-status">🔒</span></button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-title">Week 4 — Interview Ready</div>
+      <div class="week-header"><div class="week-badge wb4">W4</div><div><h4>Job Preparation</h4><p>Mock interviews + final project</p></div></div>
+      <button class="day-btn" onclick="showSection('interview');setActive(this)"><span class="day-num">D28</span><span class="day-title">SQL Interview Prep</span><span class="day-status">🔒</span></button>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main-content">
+
+    <!-- ============================
+         ASSESSMENT
+         ============================ -->
+    <div id="section-assessment" class="page-section active">
+      <div class="day-header">
+        <div class="day-label">
+          <span class="day-chip dc-sql">Step 0</span>
+          <span class="day-chip dc-week">Before We Start</span>
+        </div>
+        <h2>Quick SQL Level Assessment</h2>
+        <p>Answer honestly — this sets your starting difficulty. No wrong answers.</p>
+      </div>
+
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">🧠</span><h3>Q1: Have you written a SQL query before?</h3></div>
+        <div class="lesson-card-body">
+          <div class="assess-opt">
+            <label><input type="radio" name="q1" value="a"> Never. I have no idea what SQL looks like.</label>
+            <label><input type="radio" name="q1" value="b"> I've seen SQL code but never written it myself.</label>
+            <label><input type="radio" name="q1" value="c"> I've written basic SELECT queries a few times.</label>
+            <label><input type="radio" name="q1" value="d"> I know SELECT, WHERE, and GROUP BY.</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">🧠</span><h3>Q2: What does this query do?</h3></div>
+        <div class="lesson-card-body">
+          <div class="sql-block">
+            <span class="kw">SELECT</span> <span class="col">name</span>, <span class="col">email</span> <span class="kw">FROM</span> <span class="tbl">users</span> <span class="kw">WHERE</span> <span class="col">status</span> = <span class="str">'active'</span>;
+          </div>
+          <div class="assess-opt">
+            <label><input type="radio" name="q2" value="a"> I have no idea.</label>
+            <label><input type="radio" name="q2" value="b"> It does something with users, but I'm not sure what.</label>
+            <label><input type="radio" name="q2" value="c"> It gets the name and email of all active users. ✅</label>
+            <label><input type="radio" name="q2" value="d"> It deletes users from the database.</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">🧠</span><h3>Q3: How much time can you dedicate daily?</h3></div>
+        <div class="lesson-card-body">
+          <div class="assess-opt">
+            <label><input type="radio" name="q3" value="a"> 30–45 minutes</label>
+            <label><input type="radio" name="q3" value="b"> 1 hour</label>
+            <label><input type="radio" name="q3" value="c"> 1.5–2 hours</label>
+            <label><input type="radio" name="q3" value="d"> 2+ hours (serious mode)</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">🏆</span><h3>Assessment Result: You're a Perfect Beginner</h3></div>
+        <div class="lesson-card-body">
+          <p>Based on your CV and background, here is your starting position:</p>
+          <div class="info-box"><span class="info-icon">✅</span><p><strong>What you already have:</strong> Production support mindset, incident investigation experience, API awareness via Postman, GCP log reading. These are HUGE advantages — you think like a support engineer already. SQL is just the language to formalize it.</p></div>
+          <div class="info-box" style="background:#fff5f5; border-color:#feb2b2;"><span class="info-icon">🎯</span><p><strong>SQL starting level:</strong> Beginner — Day 1 starts from zero. Every concept will be explained using your production support world as the example. By Day 7 you will write real company queries. By Day 30 you will be interview-ready.</p></div>
+          <p style="margin-top:10px; font-weight:700; color:var(--accent);">→ Click "Day 1" in the navigation to start your first lesson now!</p>
+        </div>
+      </div>
+
+      <button class="next-btn" onclick="showSection('roadmap');setNavActive('roadmap')">View Full Roadmap →</button>
+    </div>
+
+    <!-- ============================
+         ROADMAP
+         ============================ -->
+    <div id="section-roadmap" class="page-section">
+      <div class="day-header">
+        <div class="day-label"><span class="day-chip dc-sql">Overview</span></div>
+        <h2>Your 30-Day Battle Plan</h2>
+        <p>SQL is 70% of the focus. Everything is built around realistic company tasks you'd actually face in a European tech job.</p>
+      </div>
+
+      <div class="roadmap-grid">
+        <div class="week-card wk1">
+          <h4>📗 Week 1 — SQL Foundations</h4>
+          <div class="week-theme">Days 1–7 · Core Queries</div>
+          <p style="font-size:0.78rem; color:#666; margin-bottom:10px; line-height:1.5">SELECT, WHERE, ORDER BY, LIMIT, DISTINCT, COUNT, SUM, AVG, LIKE, IN, BETWEEN, GROUP BY. You'll be writing real ticket database queries by Day 5.</p>
+          <div class="week-day-pills">
+            <div class="dp-todo day-pill" title="Day 1">1</div><div class="dp-todo day-pill" title="Day 2">2</div><div class="dp-todo day-pill" title="Day 3">3</div><div class="dp-todo day-pill" title="Day 4">4</div><div class="dp-todo day-pill" title="Day 5">5</div><div class="dp-todo day-pill" title="Day 6">6</div><div class="dp-todo day-pill" title="Day 7">7</div>
+          </div>
+          <p style="font-size:0.72rem; color:#92400e; margin-top:10px; font-weight:600;">🎯 Milestone: Write a full incident report query</p>
+        </div>
+        <div class="week-card wk2">
+          <h4>📘 Week 2 — JOINs & Power SQL</h4>
+          <div class="week-theme">Days 8–14 · Multi-Table Queries</div>
+          <p style="font-size:0.78rem; color:#666; margin-bottom:10px; line-height:1.5">INNER JOIN, LEFT JOIN, Subqueries, CASE WHEN, UNION. Real tasks: "Find all unresolved tickets with their assigned agent name."</p>
+          <div class="week-day-pills">
+            <div class="dp-todo day-pill">8</div><div class="dp-todo day-pill">9</div><div class="dp-todo day-pill">10</div><div class="dp-todo day-pill">11</div><div class="dp-todo day-pill">12</div><div class="dp-todo day-pill">13</div><div class="dp-todo day-pill">14</div>
+          </div>
+          <p style="font-size:0.72rem; color:#1e40af; margin-top:10px; font-weight:600;">🎯 Milestone: Join 3 tables to produce a manager report</p>
+        </div>
+        <div class="week-card wk3">
+          <h4>📗 Week 3 — Real Work SQL</h4>
+          <div class="week-theme">Days 15–21 · Reporting & Analysis</div>
+          <p style="font-size:0.78rem; color:#666; margin-bottom:10px; line-height:1.5">Ticket analysis, SLA breach reports, duplicate detection, user activity, incident dashboards. This is what actual employers test.</p>
+          <div class="week-day-pills">
+            <div class="dp-todo day-pill">15</div><div class="dp-todo day-pill">16</div><div class="dp-todo day-pill">17</div><div class="dp-todo day-pill">18</div><div class="dp-todo day-pill">19</div><div class="dp-todo day-pill">20</div><div class="dp-todo day-pill">21</div>
+          </div>
+          <p style="font-size:0.72rem; color:#065f46; margin-top:10px; font-weight:600;">🎯 Milestone: Complete a mock company SQL assignment</p>
+        </div>
+        <div class="week-card wk4">
+          <h4>📙 Week 4 — Interview Ready</h4>
+          <div class="week-theme">Days 22–30 · Job Preparation</div>
+          <p style="font-size:0.78rem; color:#666; margin-bottom:10px; line-height:1.5">Timed SQL challenges, mock interviews, HR prep, optimization basics, final project: "Build a complete support team dashboard."</p>
+          <div class="week-day-pills">
+            <div class="dp-todo day-pill">22</div><div class="dp-todo day-pill">23</div><div class="dp-todo day-pill">24</div><div class="dp-todo day-pill">25</div><div class="dp-todo day-pill">26</div><div class="dp-todo day-pill">27</div><div class="dp-todo day-pill" style="background:#d8b4fe; color:#6b21a8;">30</div>
+          </div>
+          <p style="font-size:0.72rem; color:#6b21a8; margin-top:10px; font-weight:600;">🎯 Milestone: Pass mock SQL interview confidently</p>
+        </div>
+      </div>
+
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">⏱️</span><h3>Daily Schedule Template</h3><span>~60 min/day</span></div>
+        <div class="lesson-card-body">
+          <table class="db-table">
+            <thead><tr><th>Time Block</th><th>Activity</th><th>Duration</th><th>Tag</th></tr></thead>
+            <tbody>
+              <tr><td>Block 1</td><td>Read today's SQL concept + examples</td><td>10 min</td><td><span class="tag tag-sql">SQL</span></td></tr>
+              <tr><td>Block 2</td><td>Try the practice task yourself FIRST</td><td>10 min</td><td><span class="tag tag-sql">SQL</span></td></tr>
+              <tr><td>Block 3</td><td>Study the optimized solution + explanation</td><td>10 min</td><td><span class="tag tag-sql">SQL</span></td></tr>
+              <tr><td>Block 4</td><td>Real-world scenario + mock task from MockCo</td><td>15 min</td><td><span class="tag tag-sql">SQL</span></td></tr>
+              <tr><td>Block 5</td><td>ITIL/IT Support concept + troubleshooting tip</td><td>5 min</td><td><span class="tag tag-itil">ITIL</span></td></tr>
+              <tr><td>Block 6</td><td>Optional: Python basics practice</td><td>10 min</td><td><span class="tag tag-py">Python</span></td></tr>
+              <tr><td>Block 7</td><td>Daily checkpoint — mark what you learned</td><td>5 min</td><td>—</td></tr>
+            </tbody>
+          </table>
+          <div class="info-box" style="margin-top:12px;"><span class="info-icon">💡</span><p>Use <strong>sqliteonline.com</strong> (free, no install) to run all SQL practice queries in your browser. You can create tables, insert data, and query it — exactly like a real database.</p></div>
+        </div>
+      </div>
+
+      <button class="next-btn" onclick="showSection('company');setNavActive('company')">See MockCo Environment →</button>
+    </div>
+
+    <!-- ============================
+         MOCK COMPANY
+         ============================ -->
+    <div id="section-company" class="page-section">
+      <div class="day-header">
+        <div class="day-label"><span class="day-chip dc-sql">Mock Environment</span></div>
+        <h2>Welcome to NordTech Solutions</h2>
+        <p>This is the fictional company you'll work for during your 30-day training. Every SQL task is a real request from a real person inside this company.</p>
+      </div>
+
+      <div class="company-card">
+        <h3>🏢 NordTech Solutions B.V.</h3>
+        <div class="company-type">SaaS Platform Company · Amsterdam, Netherlands · 420 employees · Founded 2018</div>
+        <p style="color:#ccc; font-size:0.82rem; margin-bottom:16px; line-height:1.6;">NordTech provides a B2B SaaS platform for logistics companies across Europe. They have an internal IT support team, a product support team for clients, and operations teams managing their cloud infrastructure. You are the new <strong style="color:var(--accent2)">Junior SQL Support Analyst</strong> in the IT Operations team.</p>
+        <div class="dept-grid">
+          <div class="dept-item"><div class="dept-name">Your Team</div><div class="dept-val">IT Operations</div></div>
+          <div class="dept-item"><div class="dept-name">Your Manager</div><div class="dept-val">Marta K. 🇳🇱</div></div>
+          <div class="dept-item"><div class="dept-name">Team Size</div><div class="dept-val">8 agents</div></div>
+          <div class="dept-item"><div class="dept-name">Daily Tickets</div><div class="dept-val">~120/day</div></div>
+          <div class="dept-item"><div class="dept-name">SLA Target</div><div class="dept-val">4 hours</div></div>
+          <div class="dept-item"><div class="dept-name">Tools</div><div class="dept-val">Jira + PostgreSQL</div></div>
+        </div>
+      </div>
+
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">🗄️</span><h3>NordTech Database — Tables You'll Use</h3></div>
+        <div class="lesson-card-body">
+          <p><strong>tickets</strong> — All support tickets (your main table)</p>
+          <table class="db-table" style="margin-bottom:16px;">
+            <thead><tr><th>ticket_id</th><th>title</th><th>status</th><th>priority</th><th>agent_id</th><th>user_id</th><th>created_at</th><th>resolved_at</th></tr></thead>
+            <tbody>
+              <tr><td>1001</td><td>VPN not connecting</td><td>open</td><td>high</td><td>3</td><td>45</td><td>2024-01-10</td><td>NULL</td></tr>
+              <tr><td>1002</td><td>Password reset needed</td><td>resolved</td><td>low</td><td>1</td><td>12</td><td>2024-01-10</td><td>2024-01-10</td></tr>
+              <tr><td>1003</td><td>Laptop screen broken</td><td>open</td><td>medium</td><td>2</td><td>88</td><td>2024-01-08</td><td>NULL</td></tr>
+              <tr><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td><td>...</td></tr>
+            </tbody>
+          </table>
+          <p><strong>agents</strong> — Your IT support team members</p>
+          <table class="db-table" style="margin-bottom:16px;">
+            <thead><tr><th>agent_id</th><th>name</th><th>email</th><th>team</th><th>active</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Marta Kowalski</td><td>marta@nordtech.nl</td><td>L1 Support</td><td>true</td></tr>
+              <tr><td>2</td><td>Raj Patel</td><td>raj@nordtech.nl</td><td>L2 Support</td><td>true</td></tr>
+              <tr><td>3</td><td>Sofia van Berg</td><td>sofia@nordtech.nl</td><td>L2 Support</td><td>true</td></tr>
+            </tbody>
+          </table>
+          <p><strong>users</strong> — NordTech's internal employees who submit tickets</p>
+          <table class="db-table">
+            <thead><tr><th>user_id</th><th>name</th><th>department</th><th>email</th><th>location</th></tr></thead>
+            <tbody>
+              <tr><td>12</td><td>Lena Brandt</td><td>Finance</td><td>lena@nordtech.nl</td><td>Amsterdam</td></tr>
+              <tr><td>45</td><td>Mikko Hämäläinen</td><td>Engineering</td><td>mikko@nordtech.nl</td><td>Helsinki</td></tr>
+              <tr><td>88</td><td>Tobias Schmidt</td><td>Sales</td><td>tobias@nordtech.nl</td><td>Berlin</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">📋</span><h3>Setup: Run This in sqliteonline.com</h3><span>Do this now!</span></div>
+        <div class="lesson-card-body">
+          <p>Go to <strong>sqliteonline.com</strong> → click "SQLite" → paste this in the editor and click Run. This creates your NordTech database:</p>
+          <div class="sql-block" style="position:relative;">
+            <button class="copy-btn" onclick="copySQL(this)">Copy</button>
+            <div class="sql-label">-- NORDTECH DATABASE SETUP</div>
+            <span class="kw">CREATE TABLE</span> <span class="tbl">tickets</span> (<br>
+            &nbsp;&nbsp;<span class="col">ticket_id</span> <span class="str">INTEGER</span>, <span class="col">title</span> <span class="str">TEXT</span>, <span class="col">status</span> <span class="str">TEXT</span>,<br>
+            &nbsp;&nbsp;<span class="col">priority</span> <span class="str">TEXT</span>, <span class="col">agent_id</span> <span class="str">INTEGER</span>, <span class="col">user_id</span> <span class="str">INTEGER</span>,<br>
+            &nbsp;&nbsp;<span class="col">category</span> <span class="str">TEXT</span>, <span class="col">created_at</span> <span class="str">TEXT</span>, <span class="col">resolved_at</span> <span class="str">TEXT</span><br>
+            );<br><br>
+            <span class="kw">INSERT INTO</span> <span class="tbl">tickets</span> <span class="kw">VALUES</span><br>
+            (<span class="num">1001</span>,<span class="str">'VPN not connecting'</span>,<span class="str">'open'</span>,<span class="str">'high'</span>,<span class="num">3</span>,<span class="num">45</span>,<span class="str">'Network'</span>,<span class="str">'2024-01-10'</span>,<span class="str">''</span>),<br>
+            (<span class="num">1002</span>,<span class="str">'Password reset needed'</span>,<span class="str">'resolved'</span>,<span class="str">'low'</span>,<span class="num">1</span>,<span class="num">12</span>,<span class="str">'Access'</span>,<span class="str">'2024-01-10'</span>,<span class="str">'2024-01-10'</span>),<br>
+            (<span class="num">1003</span>,<span class="str">'Laptop screen broken'</span>,<span class="str">'open'</span>,<span class="str">'medium'</span>,<span class="num">2</span>,<span class="num">88</span>,<span class="str">'Hardware'</span>,<span class="str">'2024-01-08'</span>,<span class="str">''</span>),<br>
+            (<span class="num">1004</span>,<span class="str">'Email not sending'</span>,<span class="str">'open'</span>,<span class="str">'high'</span>,<span class="num">1</span>,<span class="num">33</span>,<span class="str">'Email'</span>,<span class="str">'2024-01-09'</span>,<span class="str">''</span>),<br>
+            (<span class="num">1005</span>,<span class="str">'Software install request'</span>,<span class="str">'resolved'</span>,<span class="str">'low'</span>,<span class="num">2</span>,<span class="num">77</span>,<span class="str">'Software'</span>,<span class="str">'2024-01-11'</span>,<span class="str">'2024-01-11'</span>),<br>
+            (<span class="num">1006</span>,<span class="str">'Printer offline'</span>,<span class="str">'open'</span>,<span class="str">'low'</span>,<span class="num">3</span>,<span class="num">55</span>,<span class="str">'Hardware'</span>,<span class="str">'2024-01-07'</span>,<span class="str">''</span>),<br>
+            (<span class="num">1007</span>,<span class="str">'Cannot access CRM'</span>,<span class="str">'open'</span>,<span class="str">'high'</span>,<span class="num">2</span>,<span class="num">45</span>,<span class="str">'Software'</span>,<span class="str">'2024-01-11'</span>,<span class="str">''</span>),<br>
+            (<span class="num">1008</span>,<span class="str">'VPN speed very slow'</span>,<span class="str">'resolved'</span>,<span class="str">'medium'</span>,<span class="num">3</span>,<span class="num">12</span>,<span class="str">'Network'</span>,<span class="str">'2024-01-10'</span>,<span class="str">'2024-01-12'</span>);<br><br>
+            <span class="kw">CREATE TABLE</span> <span class="tbl">agents</span> (<span class="col">agent_id</span> <span class="str">INTEGER</span>, <span class="col">name</span> <span class="str">TEXT</span>, <span class="col">team</span> <span class="str">TEXT</span>, <span class="col">active</span> <span class="str">TEXT</span>);<br>
+            <span class="kw">INSERT INTO</span> <span class="tbl">agents</span> <span class="kw">VALUES</span> (<span class="num">1</span>,<span class="str">'Marta Kowalski'</span>,<span class="str">'L1'</span>,<span class="str">'yes'</span>),(<span class="num">2</span>,<span class="str">'Raj Patel'</span>,<span class="str">'L2'</span>,<span class="str">'yes'</span>),(<span class="num">3</span>,<span class="str">'Sofia van Berg'</span>,<span class="str">'L2'</span>,<span class="str">'yes'</span>);
+          </div>
+          <div class="info-box"><span class="info-icon">🎉</span><p>Once you run this, you have your own NordTech database! Every SQL exercise in this training uses this data. You will add more tables as you progress through the weeks.</p></div>
+        </div>
+      </div>
+
+      <button class="next-btn" onclick="showSection('day1');setNavActive('day1')">Start Day 1 →</button>
+    </div>
+
+    <!-- ============================
+         DAY 1
+         ============================ -->
+    <div id="section-day1" class="page-section">
+      <div class="day-header">
+        <div class="day-label">
+          <span class="day-chip dc-sql">Day 1</span>
+          <span class="day-chip dc-week">Week 1 · SQL Foundations</span>
+        </div>
+        <h2>SELECT & WHERE</h2>
+        <p>Today you learn the two most important SQL commands. By the end of today, you can answer real questions from your manager using data.</p>
+      </div>
+
+      <!-- CONCEPT -->
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">📖</span><h3>Concept: What is SELECT?</h3><span>10 min read</span></div>
+        <div class="lesson-card-body">
+          <p>Think of a database like an Excel sheet. A table has <strong>rows</strong> (records) and <strong>columns</strong> (fields). <code style="background:#f0f0f0; padding:1px 5px; border-radius:3px; font-family:monospace">SELECT</code> is how you ASK the database to show you data.</p>
+          <p><strong>SELECT tells the database:</strong> "Show me these columns." <strong>FROM tells it:</strong> "From which table?"</p>
+          <div class="sql-block" style="position:relative;">
+            <button class="copy-btn" onclick="copySQL(this)">Copy</button>
+            <div class="sql-label">-- BASIC STRUCTURE</div>
+            <span class="kw">SELECT</span> <span class="col">column1</span>, <span class="col">column2</span><br>
+            <span class="kw">FROM</span> <span class="tbl">table_name</span>;<br><br>
+            <span class="cmt">-- * means "show me ALL columns"</span><br>
+            <span class="kw">SELECT</span> <span class="col">*</span> <span class="kw">FROM</span> <span class="tbl">tickets</span>;
+          </div>
+          <div class="info-box"><span class="info-icon">💡</span><p>The semicolon <code>;</code> at the end tells SQL "the query is finished." Think of it like a full stop at the end of a sentence.</p></div>
+        </div>
+      </div>
+
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">📖</span><h3>Concept: What is WHERE?</h3></div>
+        <div class="lesson-card-body">
+          <p>WHERE is a <strong>filter</strong>. It says "only show me rows where this condition is true." Without WHERE, you get ALL the data. With WHERE, you get exactly what you need.</p>
+          <div class="sql-block" style="position:relative;">
+            <button class="copy-btn" onclick="copySQL(this)">Copy</button>
+            <div class="sql-label">-- WHERE EXAMPLES</div>
+            <span class="cmt">-- Show only open tickets</span><br>
+            <span class="kw">SELECT</span> <span class="col">*</span> <span class="kw">FROM</span> <span class="tbl">tickets</span> <span class="kw">WHERE</span> <span class="col">status</span> = <span class="str">'open'</span>;<br><br>
+            <span class="cmt">-- Show only high priority tickets</span><br>
+            <span class="kw">SELECT</span> <span class="col">ticket_id</span>, <span class="col">title</span>, <span class="col">priority</span><br>
+            <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">WHERE</span> <span class="col">priority</span> = <span class="str">'high'</span>;<br><br>
+            <span class="cmt">-- Combine two conditions with AND</span><br>
+            <span class="kw">SELECT</span> <span class="col">*</span> <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">WHERE</span> <span class="col">status</span> = <span class="str">'open'</span> <span class="kw">AND</span> <span class="col">priority</span> = <span class="str">'high'</span>;
+          </div>
+          <p>The <code>=</code> sign checks for exact match. Use quotes around text values. Numbers don't need quotes.</p>
+        </div>
+      </div>
+
+      <!-- SCENARIO -->
+      <div class="scenario-block">
+        <h4>📧 Email from Your Manager — Marta Kowalski</h4>
+        <p>"Hi! Can you pull a list of all <strong>open tickets</strong> from our system? Just the ticket ID, title, and priority. I need to review them in our Monday meeting. Thanks!"</p>
+        <div class="requester">— Marta K. · IT Operations Manager · NordTech Solutions</div>
+      </div>
+
+      <!-- TRY FIRST -->
+      <div class="try-block">
+        <h4>✏️ Try It Yourself First!</h4>
+        <p>Before looking at the solution — write the SQL query to get all open tickets showing only: ticket_id, title, priority. Type it below:</p>
+        <textarea id="try1" placeholder="SELECT ... FROM ... WHERE ...;"></textarea>
+        <button class="run-btn" onclick="checkTry1()">Check My Answer</button>
+        <div class="result-block" id="result1">
+          <h4>✅ Great attempt! Here's the full analysis:</h4>
+          <p>Whether you got it right or not — read the solution below carefully and understand why each part is there.</p>
+        </div>
+      </div>
+
+      <!-- SOLUTION -->
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">✅</span><h3>Optimized Solution — Step by Step</h3></div>
+        <div class="lesson-card-body">
+          <div class="sql-block" style="position:relative;">
+            <button class="copy-btn" onclick="copySQL(this)">Copy</button>
+            <div class="sql-label">-- MARTA'S REQUEST: OPEN TICKETS</div>
+            <span class="kw">SELECT</span> <span class="col">ticket_id</span>, <span class="col">title</span>, <span class="col">priority</span><br>
+            <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">WHERE</span> <span class="col">status</span> = <span class="str">'open'</span>;
+          </div>
+          <p><strong>Line by line explanation:</strong></p>
+          <p>→ <code>SELECT ticket_id, title, priority</code> — We only want these 3 columns, NOT everything. This is good practice — don't use SELECT * unless you need all columns.</p>
+          <p>→ <code>FROM tickets</code> — The data lives in the tickets table.</p>
+          <p>→ <code>WHERE status = 'open'</code> — Filter to only rows where the status column equals the text 'open'. Case sensitive — 'Open' and 'OPEN' would NOT match.</p>
+          <p style="margin-top:8px; color:var(--green); font-weight:700;">✅ Run this in sqliteonline.com with your NordTech data. You should see 5 tickets.</p>
+        </div>
+      </div>
+
+      <!-- PRACTICE TASKS -->
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">🏋️</span><h3>Practice Tasks — Do All 3</h3></div>
+        <div class="lesson-card-body">
+          <p style="margin-bottom:14px;"><strong>Task 1:</strong> Show all resolved tickets (just the ticket_id and title)</p>
+          <div class="sql-block" style="position:relative;">
+            <button class="copy-btn" onclick="copySQL(this)">Copy Answer</button>
+            <span class="cmt">-- Answer 1</span><br>
+            <span class="kw">SELECT</span> <span class="col">ticket_id</span>, <span class="col">title</span> <span class="kw">FROM</span> <span class="tbl">tickets</span> <span class="kw">WHERE</span> <span class="col">status</span> = <span class="str">'resolved'</span>;
+          </div>
+          <p style="margin-bottom:14px; margin-top:14px;"><strong>Task 2:</strong> Show all HIGH priority tickets (all columns)</p>
+          <div class="sql-block" style="position:relative;">
+            <button class="copy-btn" onclick="copySQL(this)">Copy Answer</button>
+            <span class="cmt">-- Answer 2</span><br>
+            <span class="kw">SELECT</span> <span class="col">*</span> <span class="kw">FROM</span> <span class="tbl">tickets</span> <span class="kw">WHERE</span> <span class="col">priority</span> = <span class="str">'high'</span>;
+          </div>
+          <p style="margin-bottom:14px; margin-top:14px;"><strong>Task 3 (Challenge):</strong> Show only open AND high priority tickets</p>
+          <div class="sql-block" style="position:relative;">
+            <button class="copy-btn" onclick="copySQL(this)">Copy Answer</button>
+            <span class="cmt">-- Answer 3</span><br>
+            <span class="kw">SELECT</span> <span class="col">ticket_id</span>, <span class="col">title</span>, <span class="col">priority</span>, <span class="col">status</span><br>
+            <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">WHERE</span> <span class="col">status</span> = <span class="str">'open'</span> <span class="kw">AND</span> <span class="col">priority</span> = <span class="str">'high'</span>;
+          </div>
+        </div>
+      </div>
+
+      <!-- ITIL TIP -->
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">📘</span><h3>ITIL Concept of the Day</h3><span>5 min</span></div>
+        <div class="lesson-card-body">
+          <p><strong>Incident Management:</strong> An incident is any unplanned interruption to a service. In NordTech, every ticket is an incident. The goal of your team is to restore service as fast as possible.</p>
+          <p><strong>Priority Levels you'll see in interviews:</strong></p>
+          <table class="db-table">
+            <thead><tr><th>Priority</th><th>Meaning</th><th>Response Target</th></tr></thead>
+            <tbody>
+              <tr><td>P1 / Critical</td><td>Full service down, all users affected</td><td>15 minutes</td></tr>
+              <tr><td>P2 / High</td><td>Major feature broken, some users affected</td><td>1 hour</td></tr>
+              <tr><td>P3 / Medium</td><td>Partial issue, workaround exists</td><td>4 hours</td></tr>
+              <tr><td>P4 / Low</td><td>Minor inconvenience, no urgency</td><td>Next business day</td></tr>
+            </tbody>
+          </table>
+          <div class="info-box" style="margin-top:10px;"><span class="info-icon">🎤</span><p><strong>Interview answer:</strong> "An incident is any unplanned interruption or degradation of a service. Incident management focuses on restoring normal service as quickly as possible, minimizing business impact while following SLA guidelines."</p></div>
+        </div>
+      </div>
+
+      <!-- OPTIONAL PYTHON -->
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">🐍</span><h3>Optional Python — Day 1</h3><span>Skip if tired</span></div>
+        <div class="lesson-card-body">
+          <p>Python Day 1: Variables. A variable stores data. That's it.</p>
+          <div class="python-block">
+            <span class="py-cmt"># Variables — storing data</span><br>
+            <span class="py-var">agent_name</span> = <span class="py-str">"Prem Rathod"</span><br>
+            <span class="py-var">ticket_count</span> = <span class="py-num">120</span><br>
+            <span class="py-var">is_sla_breached</span> = <span class="py-kw">False</span><br><br>
+            <span class="py-cmt"># Print them</span><br>
+            <span class="py-fn">print</span>(<span class="py-str">"Agent:"</span>, <span class="py-var">agent_name</span>)<br>
+            <span class="py-fn">print</span>(<span class="py-str">"Open tickets:"</span>, <span class="py-var">ticket_count</span>)<br>
+            <span class="py-fn">print</span>(<span class="py-str">"SLA breached?"</span>, <span class="py-var">is_sla_breached</span>)
+          </div>
+          <p>Run this at <strong>programiz.com/python-programming/online-compiler</strong> — it runs Python in your browser, no install needed.</p>
+        </div>
+      </div>
+
+      <!-- CHECKPOINT -->
+      <div class="checkpoint">
+        <h4>✅ Day 1 Checkpoint</h4>
+        <ul>
+          <li>I understand what SELECT does — it retrieves columns from a table</li>
+          <li>I understand what FROM does — it specifies which table</li>
+          <li>I understand what WHERE does — it filters rows by a condition</li>
+          <li>I ran at least 2 practice queries in sqliteonline.com</li>
+          <li>I know what an "incident" means in ITIL terms</li>
+          <li>I can explain the 4 priority levels (P1–P4)</li>
+        </ul>
+        <button class="mark-done-btn" onclick="markDone(1)">✓ Mark Day 1 Complete</button>
+      </div>
+
+      <div class="nav-row">
+        <button class="prev-btn" onclick="showSection('company');setNavActive('company')">← MockCo</button>
+        <button class="next-btn" onclick="showSection('day2');setNavActive('day2')">Day 2: ORDER BY & LIMIT →</button>
+      </div>
+    </div>
+
+    <!-- ============================
+         DAY 2
+         ============================ -->
+    <div id="section-day2" class="page-section">
+      <div class="day-header">
+        <div class="day-label"><span class="day-chip dc-sql">Day 2</span><span class="day-chip dc-week">Week 1</span></div>
+        <h2>ORDER BY & LIMIT</h2>
+        <p>Today you learn to sort data and control how many rows you get back. These two commands are in almost every real-world query you'll ever write.</p>
+      </div>
+
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">📖</span><h3>Concept: ORDER BY — Sort Your Results</h3></div>
+        <div class="lesson-card-body">
+          <p>ORDER BY sorts the results. Think of it like clicking a column header in Excel to sort. <strong>ASC</strong> = A to Z (low to high). <strong>DESC</strong> = Z to A (high to low).</p>
+          <div class="sql-block" style="position:relative;"><button class="copy-btn" onclick="copySQL(this)">Copy</button>
+            <span class="cmt">-- Sort tickets oldest first (ASC is default)</span><br>
+            <span class="kw">SELECT</span> <span class="col">ticket_id</span>, <span class="col">title</span>, <span class="col">created_at</span><br>
+            <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">ORDER BY</span> <span class="col">created_at</span> <span class="kw">ASC</span>;<br><br>
+            <span class="cmt">-- Sort by priority, most urgent last (for alphabetical: high, low, medium)</span><br>
+            <span class="kw">SELECT</span> <span class="col">*</span> <span class="kw">FROM</span> <span class="tbl">tickets</span> <span class="kw">ORDER BY</span> <span class="col">priority</span> <span class="kw">DESC</span>;
+          </div>
+        </div>
+      </div>
+
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">📖</span><h3>Concept: LIMIT — Control Result Size</h3></div>
+        <div class="lesson-card-body">
+          <p>LIMIT says "only show me the first N rows." Essential when your database has thousands of rows and you only need a summary or top results.</p>
+          <div class="sql-block" style="position:relative;"><button class="copy-btn" onclick="copySQL(this)">Copy</button>
+            <span class="cmt">-- Show only the 3 most recent tickets</span><br>
+            <span class="kw">SELECT</span> <span class="col">ticket_id</span>, <span class="col">title</span>, <span class="col">created_at</span><br>
+            <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">ORDER BY</span> <span class="col">created_at</span> <span class="kw">DESC</span><br>
+            <span class="kw">LIMIT</span> <span class="num">3</span>;<br><br>
+            <span class="cmt">-- Top 5 oldest OPEN tickets (most urgent to close!)</span><br>
+            <span class="kw">SELECT</span> <span class="col">ticket_id</span>, <span class="col">title</span>, <span class="col">priority</span>, <span class="col">created_at</span><br>
+            <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">WHERE</span> <span class="col">status</span> = <span class="str">'open'</span><br>
+            <span class="kw">ORDER BY</span> <span class="col">created_at</span> <span class="kw">ASC</span><br>
+            <span class="kw">LIMIT</span> <span class="num">5</span>;
+          </div>
+          <div class="info-box"><span class="info-icon">💡</span><p>The ORDER of SQL clauses matters: SELECT → FROM → WHERE → ORDER BY → LIMIT. You can't put LIMIT before WHERE.</p></div>
+        </div>
+      </div>
+
+      <div class="scenario-block">
+        <h4>📧 Request from Raj Patel (L2 Support)</h4>
+        <p>"Hey Prem, can you send me the <strong>5 oldest open tickets</strong>? I want to make sure nothing is slipping through the cracks. Sort by oldest first."</p>
+        <div class="requester">— Raj Patel · L2 Support Agent · NordTech Solutions</div>
+      </div>
+
+      <div class="try-block">
+        <h4>✏️ Try It First!</h4>
+        <p>Write a query: show ticket_id, title, created_at for the 5 oldest open tickets, sorted oldest first.</p>
+        <textarea id="try2" placeholder="SELECT ... FROM ... WHERE ... ORDER BY ... LIMIT ...;"></textarea>
+        <button class="run-btn" onclick="showResult('result2')">Check Answer</button>
+        <div class="result-block" id="result2">
+          <h4>✅ Solution:</h4>
+          <p><code>SELECT ticket_id, title, created_at FROM tickets WHERE status = 'open' ORDER BY created_at ASC LIMIT 5;</code></p>
+        </div>
+      </div>
+
+      <div class="checkpoint">
+        <h4>✅ Day 2 Checkpoint</h4>
+        <ul>
+          <li>I can sort results using ORDER BY ASC and DESC</li>
+          <li>I know LIMIT controls how many rows I get back</li>
+          <li>I combined WHERE + ORDER BY + LIMIT in one query</li>
+          <li>I know the correct order of SQL clauses</li>
+        </ul>
+        <button class="mark-done-btn" onclick="markDone(2)">✓ Mark Day 2 Complete</button>
+      </div>
+
+      <div class="nav-row">
+        <button class="prev-btn" onclick="showSection('day1');setNavActive('day1')">← Day 1</button>
+        <button class="next-btn" onclick="showSection('day3');setNavActive('day3')">Day 3: DISTINCT & COUNT →</button>
+      </div>
+    </div>
+
+    <!-- DAY 3 -->
+    <div id="section-day3" class="page-section">
+      <div class="day-header">
+        <div class="day-label"><span class="day-chip dc-sql">Day 3</span><span class="day-chip dc-week">Week 1</span></div>
+        <h2>DISTINCT & COUNT</h2>
+        <p>Today: remove duplicates and start counting. These are the foundations of every report you'll ever build.</p>
+      </div>
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">📖</span><h3>DISTINCT — Remove Duplicate Values</h3></div>
+        <div class="lesson-card-body">
+          <p>DISTINCT returns only unique values. If 10 tickets all have status='open', DISTINCT only shows 'open' once.</p>
+          <div class="sql-block" style="position:relative;"><button class="copy-btn" onclick="copySQL(this)">Copy</button>
+            <span class="cmt">-- What categories exist in our tickets?</span><br>
+            <span class="kw">SELECT DISTINCT</span> <span class="col">category</span> <span class="kw">FROM</span> <span class="tbl">tickets</span>;<br><br>
+            <span class="cmt">-- What priority levels do we have?</span><br>
+            <span class="kw">SELECT DISTINCT</span> <span class="col">priority</span> <span class="kw">FROM</span> <span class="tbl">tickets</span> <span class="kw">ORDER BY</span> <span class="col">priority</span>;
+          </div>
+        </div>
+      </div>
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">📖</span><h3>COUNT — Count Rows</h3></div>
+        <div class="lesson-card-body">
+          <p>COUNT counts how many rows match your query. This is the most common reporting function in SQL.</p>
+          <div class="sql-block" style="position:relative;"><button class="copy-btn" onclick="copySQL(this)">Copy</button>
+            <span class="cmt">-- How many total tickets?</span><br>
+            <span class="kw">SELECT</span> <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> <span class="tbl">tickets</span>;<br><br>
+            <span class="cmt">-- How many OPEN tickets?</span><br>
+            <span class="kw">SELECT</span> <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="col">open_tickets</span><br>
+            <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">WHERE</span> <span class="col">status</span> = <span class="str">'open'</span>;<br><br>
+            <span class="cmt">-- AS gives your result column a friendly name</span>
+          </div>
+          <div class="info-box"><span class="info-icon">💡</span><p><strong>AS</strong> creates an alias — a friendly name for your result column. Instead of "COUNT(*)" you get "open_tickets" in your output. Always use aliases in real reports so managers understand the output.</p></div>
+        </div>
+      </div>
+      <div class="scenario-block">
+        <h4>📧 Monday Morning Report — Marta's Weekly Request</h4>
+        <p>"For our Monday standup, I need: how many tickets are currently open? How many resolved? What categories of issues do we have? Quick summary please."</p>
+        <div class="requester">— Marta K. · IT Manager</div>
+      </div>
+      <div class="try-block">
+        <h4>✏️ Write 3 queries to answer Marta's request</h4>
+        <p>1) Count of open tickets · 2) Count of resolved tickets · 3) List of distinct categories</p>
+        <textarea id="try3" placeholder="-- Query 1: open count&#10;-- Query 2: resolved count&#10;-- Query 3: categories"></textarea>
+        <button class="run-btn" onclick="showResult('result3')">Show Answers</button>
+        <div class="result-block" id="result3">
+          <h4>✅ Solutions:</h4>
+          <p>1) <code>SELECT COUNT(*) AS open_tickets FROM tickets WHERE status = 'open';</code><br>
+          2) <code>SELECT COUNT(*) AS resolved_tickets FROM tickets WHERE status = 'resolved';</code><br>
+          3) <code>SELECT DISTINCT category FROM tickets ORDER BY category;</code></p>
+        </div>
+      </div>
+      <div class="checkpoint">
+        <h4>✅ Day 3 Checkpoint</h4>
+        <ul>
+          <li>I know DISTINCT removes duplicate values from results</li>
+          <li>I can use COUNT(*) to count rows</li>
+          <li>I know how to use AS to name my result columns</li>
+          <li>I combined COUNT with WHERE to count specific records</li>
+        </ul>
+        <button class="mark-done-btn" onclick="markDone(3)">✓ Mark Day 3 Complete</button>
+      </div>
+      <div class="nav-row">
+        <button class="prev-btn" onclick="showSection('day2');setNavActive('day2')">← Day 2</button>
+        <button class="next-btn" onclick="showSection('day4');setNavActive('day4')">Day 4: SUM, AVG, MIN, MAX →</button>
+      </div>
+    </div>
+
+    <!-- DAY 4 -->
+    <div id="section-day4" class="page-section">
+      <div class="day-header">
+        <div class="day-label"><span class="day-chip dc-sql">Day 4</span><span class="day-chip dc-week">Week 1</span></div>
+        <h2>SUM, AVG, MIN, MAX</h2>
+        <p>Aggregate functions — do math on your data. These turn raw records into useful numbers for reports.</p>
+      </div>
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">📖</span><h3>The 4 Aggregate Functions</h3></div>
+        <div class="lesson-card-body">
+          <table class="db-table" style="margin-bottom:14px;">
+            <thead><tr><th>Function</th><th>What It Does</th><th>Example Use</th></tr></thead>
+            <tbody>
+              <tr><td>SUM()</td><td>Adds all values together</td><td>Total tickets this week</td></tr>
+              <tr><td>AVG()</td><td>Calculates the average</td><td>Average resolution time</td></tr>
+              <tr><td>MIN()</td><td>Finds the smallest value</td><td>Earliest ticket date</td></tr>
+              <tr><td>MAX()</td><td>Finds the largest value</td><td>Most tickets by one agent</td></tr>
+            </tbody>
+          </table>
+          <div class="sql-block" style="position:relative;"><button class="copy-btn" onclick="copySQL(this)">Copy</button>
+            <span class="cmt">-- For numeric columns — add this column first!</span><br>
+            <span class="cmt">-- Run: ALTER TABLE tickets ADD COLUMN response_hours INTEGER;</span><br>
+            <span class="cmt">-- UPDATE tickets SET response_hours = 2 WHERE ticket_id=1002;</span><br>
+            <span class="cmt">-- UPDATE tickets SET response_hours = 5 WHERE ticket_id=1005;</span><br>
+            <span class="cmt">-- UPDATE tickets SET response_hours = 3 WHERE ticket_id=1008;</span><br><br>
+            <span class="kw">SELECT</span><br>
+            &nbsp;&nbsp;<span class="fn">AVG</span>(<span class="col">response_hours</span>) <span class="kw">AS</span> <span class="col">avg_response</span>,<br>
+            &nbsp;&nbsp;<span class="fn">MIN</span>(<span class="col">response_hours</span>) <span class="kw">AS</span> <span class="col">fastest</span>,<br>
+            &nbsp;&nbsp;<span class="fn">MAX</span>(<span class="col">response_hours</span>) <span class="kw">AS</span> <span class="col">slowest</span><br>
+            <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">WHERE</span> <span class="col">status</span> = <span class="str">'resolved'</span>;
+          </div>
+        </div>
+      </div>
+      <div class="scenario-block">
+        <h4>📧 Request from Marta — Performance Report</h4>
+        <p>"I have a meeting with the CTO. Can you tell me: what's the average response time for resolved tickets? What's the fastest and slowest we've responded? I need the numbers to justify hiring another agent."</p>
+        <div class="requester">— Marta K. · IT Manager</div>
+      </div>
+      <div class="checkpoint">
+        <h4>✅ Day 4 Checkpoint</h4>
+        <ul>
+          <li>I understand what SUM, AVG, MIN, MAX do</li>
+          <li>I can use these functions with WHERE to filter before calculating</li>
+          <li>I use AS to label my calculated results clearly</li>
+          <li>I ran aggregate queries on the NordTech data</li>
+        </ul>
+        <button class="mark-done-btn" onclick="markDone(4)">✓ Mark Day 4 Complete</button>
+      </div>
+      <div class="nav-row">
+        <button class="prev-btn" onclick="showSection('day3');setNavActive('day3')">← Day 3</button>
+        <button class="next-btn" onclick="showSection('day5');setNavActive('day5')">Day 5: LIKE, IN, BETWEEN →</button>
+      </div>
+    </div>
+
+    <!-- DAY 5 -->
+    <div id="section-day5" class="page-section">
+      <div class="day-header">
+        <div class="day-label"><span class="day-chip dc-sql">Day 5</span><span class="day-chip dc-week">Week 1</span></div>
+        <h2>LIKE, IN & BETWEEN</h2>
+        <p>Advanced filtering — search for patterns, multiple values, and ranges. These appear in almost every support database query.</p>
+      </div>
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">📖</span><h3>LIKE — Search by Pattern</h3></div>
+        <div class="lesson-card-body">
+          <p>LIKE searches for text patterns. Use <code>%</code> as a wildcard (means "any characters here").</p>
+          <div class="sql-block" style="position:relative;"><button class="copy-btn" onclick="copySQL(this)">Copy</button>
+            <span class="cmt">-- Find all tickets about VPN (contains "VPN" anywhere)</span><br>
+            <span class="kw">SELECT</span> <span class="col">*</span> <span class="kw">FROM</span> <span class="tbl">tickets</span> <span class="kw">WHERE</span> <span class="col">title</span> <span class="kw">LIKE</span> <span class="str">'%VPN%'</span>;<br><br>
+            <span class="cmt">-- Find tickets starting with "Password"</span><br>
+            <span class="kw">SELECT</span> <span class="col">*</span> <span class="kw">FROM</span> <span class="tbl">tickets</span> <span class="kw">WHERE</span> <span class="col">title</span> <span class="kw">LIKE</span> <span class="str">'Password%'</span>;<br><br>
+            <span class="cmt">-- Find tickets ending in "request"</span><br>
+            <span class="kw">SELECT</span> <span class="col">*</span> <span class="kw">FROM</span> <span class="tbl">tickets</span> <span class="kw">WHERE</span> <span class="col">title</span> <span class="kw">LIKE</span> <span class="str">'%request'</span>;
+          </div>
+        </div>
+      </div>
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">📖</span><h3>IN & BETWEEN</h3></div>
+        <div class="lesson-card-body">
+          <div class="sql-block" style="position:relative;"><button class="copy-btn" onclick="copySQL(this)">Copy</button>
+            <span class="cmt">-- IN: match any of these values (cleaner than multiple OR)</span><br>
+            <span class="kw">SELECT</span> <span class="col">*</span> <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">WHERE</span> <span class="col">priority</span> <span class="kw">IN</span> (<span class="str">'high'</span>, <span class="str">'medium'</span>);<br><br>
+            <span class="cmt">-- BETWEEN: find dates or numbers in a range</span><br>
+            <span class="kw">SELECT</span> <span class="col">*</span> <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">WHERE</span> <span class="col">created_at</span> <span class="kw">BETWEEN</span> <span class="str">'2024-01-08'</span> <span class="kw">AND</span> <span class="str">'2024-01-10'</span>;
+          </div>
+        </div>
+      </div>
+      <div class="scenario-block">
+        <h4>📧 Request from Security Team</h4>
+        <p>"We suspect there's a pattern of VPN-related issues. Can you pull all tickets that mention VPN in the title? Also give me all tickets from Jan 9–11 that are high or medium priority."</p>
+        <div class="requester">— Leon V. · Security Analyst · NordTech</div>
+      </div>
+      <div class="checkpoint">
+        <h4>✅ Day 5 Checkpoint</h4>
+        <ul>
+          <li>I use LIKE with % to search for text patterns</li>
+          <li>I use IN() to filter multiple specific values at once</li>
+          <li>I use BETWEEN to filter date or number ranges</li>
+          <li>I can combine LIKE + AND + IN in one query</li>
+        </ul>
+        <button class="mark-done-btn" onclick="markDone(5)">✓ Mark Day 5 Complete</button>
+      </div>
+      <div class="nav-row">
+        <button class="prev-btn" onclick="showSection('day4');setNavActive('day4')">← Day 4</button>
+        <button class="next-btn" onclick="showSection('day6');setNavActive('day6')">Day 6: GROUP BY →</button>
+      </div>
+    </div>
+
+    <!-- DAY 6 -->
+    <div id="section-day6" class="page-section">
+      <div class="day-header">
+        <div class="day-label"><span class="day-chip dc-sql">Day 6</span><span class="day-chip dc-week">Week 1</span></div>
+        <h2>GROUP BY & HAVING</h2>
+        <p>The most powerful reporting tool in SQL. GROUP BY lets you summarize data by category — like "how many tickets per agent?" or "how many issues per category?"</p>
+      </div>
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">📖</span><h3>GROUP BY — Summarize by Category</h3></div>
+        <div class="lesson-card-body">
+          <p>GROUP BY groups rows that have the same value in a column, then lets you run aggregate functions (COUNT, SUM, AVG) on each group separately.</p>
+          <div class="sql-block" style="position:relative;"><button class="copy-btn" onclick="copySQL(this)">Copy</button>
+            <span class="cmt">-- How many tickets per category?</span><br>
+            <span class="kw">SELECT</span> <span class="col">category</span>, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="col">total_tickets</span><br>
+            <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">GROUP BY</span> <span class="col">category</span><br>
+            <span class="kw">ORDER BY</span> <span class="col">total_tickets</span> <span class="kw">DESC</span>;<br><br>
+            <span class="cmt">-- How many tickets per agent?</span><br>
+            <span class="kw">SELECT</span> <span class="col">agent_id</span>, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="col">ticket_count</span><br>
+            <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">GROUP BY</span> <span class="col">agent_id</span><br>
+            <span class="kw">ORDER BY</span> <span class="col">ticket_count</span> <span class="kw">DESC</span>;<br><br>
+            <span class="cmt">-- HAVING filters AFTER grouping (WHERE filters before)</span><br>
+            <span class="kw">SELECT</span> <span class="col">agent_id</span>, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="col">ticket_count</span><br>
+            <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">GROUP BY</span> <span class="col">agent_id</span><br>
+            <span class="kw">HAVING</span> <span class="fn">COUNT</span>(*) > <span class="num">2</span>;<br>
+            <span class="cmt">-- Only show agents with MORE than 2 tickets</span>
+          </div>
+          <div class="info-box"><span class="info-icon">💡</span><p><strong>WHERE vs HAVING rule:</strong> WHERE filters rows BEFORE grouping. HAVING filters groups AFTER grouping. Use WHERE to filter raw data, HAVING to filter the grouped summary results.</p></div>
+        </div>
+      </div>
+      <div class="scenario-block">
+        <h4>📧 Marta's Weekly KPI Report</h4>
+        <p>"I need a report for the management meeting: 1) Which ticket category has the most issues? 2) How many tickets does each agent have? 3) Who has more than 2 tickets assigned right now?"</p>
+        <div class="requester">— Marta K. · IT Manager</div>
+      </div>
+      <div class="checkpoint">
+        <h4>✅ Day 6 Checkpoint</h4>
+        <ul>
+          <li>GROUP BY groups rows and lets me count/sum within groups</li>
+          <li>HAVING filters after grouping (unlike WHERE which filters before)</li>
+          <li>I built a ticket-per-category report using GROUP BY + COUNT</li>
+          <li>I can sort grouped results using ORDER BY after GROUP BY</li>
+        </ul>
+        <button class="mark-done-btn" onclick="markDone(6)">✓ Mark Day 6 Complete</button>
+      </div>
+      <div class="nav-row">
+        <button class="prev-btn" onclick="showSection('day5');setNavActive('day5')">← Day 5</button>
+        <button class="next-btn" onclick="showSection('day7');setNavActive('day7')">Day 7: Week 1 Review →</button>
+      </div>
+    </div>
+
+    <!-- DAY 7 -->
+    <div id="section-day7" class="page-section">
+      <div class="day-header">
+        <div class="day-label"><span class="day-chip dc-sql">Day 7</span><span class="day-chip dc-week">Week 1 · Review</span></div>
+        <h2>Week 1 Review + Mini Project 🎉</h2>
+        <p>You've completed Week 1. Today: review everything, then complete your first real mini-project — a complete IT support summary report for NordTech management.</p>
+      </div>
+
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">🧠</span><h3>Week 1 Quick Reference Card</h3></div>
+        <div class="lesson-card-body">
+          <table class="db-table">
+            <thead><tr><th>Command</th><th>What It Does</th><th>Example</th></tr></thead>
+            <tbody>
+              <tr><td>SELECT</td><td>Choose which columns to show</td><td>SELECT name, email</td></tr>
+              <tr><td>FROM</td><td>Which table to read from</td><td>FROM tickets</td></tr>
+              <tr><td>WHERE</td><td>Filter rows by condition</td><td>WHERE status = 'open'</td></tr>
+              <tr><td>ORDER BY</td><td>Sort results ASC or DESC</td><td>ORDER BY created_at DESC</td></tr>
+              <tr><td>LIMIT</td><td>Cap number of results</td><td>LIMIT 10</td></tr>
+              <tr><td>DISTINCT</td><td>Remove duplicate values</td><td>SELECT DISTINCT category</td></tr>
+              <tr><td>COUNT()</td><td>Count rows</td><td>COUNT(*) AS total</td></tr>
+              <tr><td>SUM/AVG/MIN/MAX</td><td>Math on numeric columns</td><td>AVG(response_hours)</td></tr>
+              <tr><td>LIKE</td><td>Pattern search with %</td><td>LIKE '%VPN%'</td></tr>
+              <tr><td>IN</td><td>Match multiple values</td><td>IN ('high','medium')</td></tr>
+              <tr><td>BETWEEN</td><td>Range filter</td><td>BETWEEN '2024-01-01' AND '2024-01-31'</td></tr>
+              <tr><td>GROUP BY</td><td>Summarize by category</td><td>GROUP BY agent_id</td></tr>
+              <tr><td>HAVING</td><td>Filter after GROUP BY</td><td>HAVING COUNT(*) > 5</td></tr>
+              <tr><td>AS</td><td>Rename a column in output</td><td>COUNT(*) AS total_tickets</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">🏆</span><h3>Mini Project: NordTech Weekly Report</h3><span>Real Task!</span></div>
+        <div class="lesson-card-body">
+          <div class="scenario-block" style="margin-bottom:14px;">
+            <h4>📧 Email from CTO — Joris de Vries</h4>
+            <p>"Team — I need a complete summary of our IT support performance this week. Can someone pull together: total tickets, open vs resolved breakdown, busiest category, agent workload, and any high-priority tickets still open? I need it by EOD."</p>
+            <div class="requester">— Joris de Vries · CTO · NordTech Solutions</div>
+          </div>
+          <p><strong>Write 5 queries to complete this report:</strong></p>
+          <div class="sql-block" style="position:relative;"><button class="copy-btn" onclick="copySQL(this)">Copy All</button>
+            <span class="cmt">-- Query 1: Total ticket count</span><br>
+            <span class="kw">SELECT</span> <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="col">total_tickets</span> <span class="kw">FROM</span> <span class="tbl">tickets</span>;<br><br>
+            <span class="cmt">-- Query 2: Open vs Resolved breakdown</span><br>
+            <span class="kw">SELECT</span> <span class="col">status</span>, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="col">count</span><br>
+            <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">GROUP BY</span> <span class="col">status</span>;<br><br>
+            <span class="cmt">-- Query 3: Busiest category</span><br>
+            <span class="kw">SELECT</span> <span class="col">category</span>, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="col">total</span><br>
+            <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">GROUP BY</span> <span class="col">category</span><br>
+            <span class="kw">ORDER BY</span> <span class="col">total</span> <span class="kw">DESC</span>;<br><br>
+            <span class="cmt">-- Query 4: Tickets per agent</span><br>
+            <span class="kw">SELECT</span> <span class="col">agent_id</span>, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="col">assigned</span><br>
+            <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">GROUP BY</span> <span class="col">agent_id</span><br>
+            <span class="kw">ORDER BY</span> <span class="col">assigned</span> <span class="kw">DESC</span>;<br><br>
+            <span class="cmt">-- Query 5: High priority open tickets still unresolved</span><br>
+            <span class="kw">SELECT</span> <span class="col">ticket_id</span>, <span class="col">title</span>, <span class="col">created_at</span><br>
+            <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">WHERE</span> <span class="col">status</span> = <span class="str">'open'</span> <span class="kw">AND</span> <span class="col">priority</span> = <span class="str">'high'</span><br>
+            <span class="kw">ORDER BY</span> <span class="col">created_at</span> <span class="kw">ASC</span>;
+          </div>
+          <div class="info-box"><span class="info-icon">🎉</span><p>If you can run all 5 of these and understand every line — you have finished Week 1 and are ready to apply for junior data support roles. Seriously. This is real work.</p></div>
+        </div>
+      </div>
+
+      <div class="checkpoint" style="background: linear-gradient(135deg, #1a4731 0%, #0d2b1f 100%);">
+        <h4 style="color: #4ade80;">🏆 Week 1 Complete! Milestone Achieved</h4>
+        <ul>
+          <li>I can write SELECT, WHERE, ORDER BY, LIMIT queries</li>
+          <li>I can use DISTINCT, COUNT, SUM, AVG, MIN, MAX</li>
+          <li>I can filter with LIKE, IN, BETWEEN</li>
+          <li>I can write GROUP BY reports with HAVING</li>
+          <li>I completed the NordTech CTO report (mini project)</li>
+          <li>I understand ITIL incident priority levels</li>
+        </ul>
+        <button class="mark-done-btn" onclick="markDone(7)" style="background: #16a34a;">🏆 Complete Week 1!</button>
+      </div>
+
+      <div class="nav-row">
+        <button class="prev-btn" onclick="showSection('day6');setNavActive('day6')">← Day 6</button>
+        <button class="next-btn" onclick="showSection('interview');setNavActive('interview')">Preview: Interview Prep →</button>
+      </div>
+    </div>
+
+    <!-- ============================
+         INTERVIEW PREP
+         ============================ -->
+    <div id="section-interview" class="page-section">
+      <div class="day-header">
+        <div class="day-label"><span class="day-chip dc-sql">Week 4</span><span class="day-chip dc-week">Interview Ready</span></div>
+        <h2>SQL & IT Support Interview Prep</h2>
+        <p>Real questions asked by Booking.com, Wolt, Aiven, NinjaOne, and Celonis. Practice these until the answers feel natural.</p>
+      </div>
+
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">💬</span><h3>SQL Interview Questions</h3></div>
+        <div class="lesson-card-body">
+
+          <div class="interview-q">
+            <div class="interview-q-head" onclick="toggleQ(this)">Q1: What is the difference between WHERE and HAVING? <span>▼</span></div>
+            <div class="interview-q-body">WHERE filters individual rows BEFORE the data is grouped. HAVING filters group results AFTER GROUP BY runs. You can't use aggregate functions (COUNT, SUM) in WHERE — use HAVING for that.<br><br>
+              <strong>Example:</strong> WHERE status = 'open' filters rows. HAVING COUNT(*) > 5 filters groups that have more than 5 rows.<br><br>
+              <em>Interviewer tip: Saying "WHERE runs before grouping, HAVING after" in the first sentence shows you really understand it.</em>
+            </div>
+          </div>
+
+          <div class="interview-q">
+            <div class="interview-q-head" onclick="toggleQ(this)">Q2: What is the difference between INNER JOIN and LEFT JOIN? <span>▼</span></div>
+            <div class="interview-q-body">INNER JOIN returns only rows that have a match in BOTH tables. LEFT JOIN returns all rows from the left table, plus matching rows from the right table — if there's no match, the right table columns are NULL.<br><br>
+              <strong>Real example:</strong> "LEFT JOIN agents ON tickets.agent_id = agents.agent_id" — gives you all tickets, even if no agent is assigned yet. INNER JOIN would hide unassigned tickets.<br><br>
+              <em>Use LEFT JOIN when you don't want to lose data from your main table.</em>
+            </div>
+          </div>
+
+          <div class="interview-q">
+            <div class="interview-q-head" onclick="toggleQ(this)">Q3: Write a query to find duplicate records in a table. <span>▼</span></div>
+            <div class="interview-q-body">
+              <div class="sql-block">
+                <span class="cmt">-- Find duplicate ticket titles</span><br>
+                <span class="kw">SELECT</span> <span class="col">title</span>, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="col">occurrences</span><br>
+                <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+                <span class="kw">GROUP BY</span> <span class="col">title</span><br>
+                <span class="kw">HAVING</span> <span class="fn">COUNT</span>(*) > <span class="num">1</span><br>
+                <span class="kw">ORDER BY</span> <span class="col">occurrences</span> <span class="kw">DESC</span>;
+              </div>
+              <em>This is one of the most common SQL interview tasks. GROUP BY + HAVING COUNT(*) > 1 is the standard pattern.</em>
+            </div>
+          </div>
+
+          <div class="interview-q">
+            <div class="interview-q-head" onclick="toggleQ(this)">Q4: How would you find all tickets unresolved for more than 7 days? <span>▼</span></div>
+            <div class="interview-q-body">
+              <div class="sql-block">
+                <span class="cmt">-- SQLite version</span><br>
+                <span class="kw">SELECT</span> <span class="col">ticket_id</span>, <span class="col">title</span>, <span class="col">created_at</span><br>
+                <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+                <span class="kw">WHERE</span> <span class="col">status</span> = <span class="str">'open'</span><br>
+                &nbsp;&nbsp;<span class="kw">AND</span> <span class="fn">julianday</span>(<span class="str">'now'</span>) - <span class="fn">julianday</span>(<span class="col">created_at</span>) > <span class="num">7</span>;
+              </div>
+              <em>This is a classic SLA breach detection query. Even if you don't know the date function by heart, saying "I'd use date functions to compare today's date with created_at" shows the right thinking.</em>
+            </div>
+          </div>
+
+          <div class="interview-q">
+            <div class="interview-q-head" onclick="toggleQ(this)">Q5: What does SELECT DISTINCT do? Give an example. <span>▼</span></div>
+            <div class="interview-q-body">DISTINCT removes duplicate values from the result set. If you SELECT category FROM tickets and 10 rows have category='Network', you'll see 'Network' 10 times. DISTINCT shows it once.<br><br>
+              <strong>Example:</strong> <code>SELECT DISTINCT category FROM tickets;</code> gives you a clean list of all unique ticket categories.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">🎤</span><h3>IT Support / HR Interview Questions</h3></div>
+        <div class="lesson-card-body">
+
+          <div class="interview-q">
+            <div class="interview-q-head" onclick="toggleQ(this)">Q: "Tell me about yourself" — for a European tech company <span>▼</span></div>
+            <div class="interview-q-body">
+              <strong>Template answer for Prem:</strong><br><br>
+              "I'm a Technical Support Team Lead with 3 years of experience in production support, incident investigation, and SLA-driven issue resolution. I've worked with GCP logs, Cassandra, Firebase, and API validation using Postman — primarily in live production environments. I'm now upskilling in SQL and monitoring tools to transition into an L2/L3 technical support role in Europe. I'm particularly drawn to [Company] because of your English-speaking environment and strong technical support culture. I'm open to relocation and visa sponsorship to make this move."<br><br>
+              <em>Keep it under 90 seconds. Practice out loud until it feels natural.</em>
+            </div>
+          </div>
+
+          <div class="interview-q">
+            <div class="interview-q-head" onclick="toggleQ(this)">Q: "Walk me through how you handle a P1 incident" <span>▼</span></div>
+            <div class="interview-q-body">
+              <strong>STAR format answer:</strong><br><br>
+              "First, I confirm the scope — is it affecting all users or just some? I immediately escalate to L2/L3 and notify stakeholders. While the technical team works on the root cause, I maintain communication with affected users every 15–30 minutes. I keep notes in the incident log. Once resolved, I do a root cause analysis and document a post-mortem so we can prevent recurrence. Throughout, SLA timers are visible and I always escalate before a breach, not after."<br><br>
+              <em>This shows you understand ITIL incident management, communication, and documentation — all key in European support roles.</em>
+            </div>
+          </div>
+
+          <div class="interview-q">
+            <div class="interview-q-head" onclick="toggleQ(this)">Q: "Why do you want to move to Europe / Netherlands / Germany / Finland?" <span>▼</span></div>
+            <div class="interview-q-body">
+              "Europe has a strong tech ecosystem that I want to be part of. Specifically, [country] has several companies doing exactly the kind of SaaS operations and technical support work I'm passionate about. I'm attracted to the international, English-speaking work environment, the strong work-life balance culture, and the opportunity to grow in a structured support organization. I've been preparing specifically for this move — learning SQL, getting familiar with European ITSM tools, and studying the visa requirements. I'm fully committed to relocating."<br><br>
+              <em>Always be positive and specific. Mention the company's actual products or values if you can.</em>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="lesson-card">
+        <div class="lesson-card-head"><span class="lesson-icon">⏱️</span><h3>Timed SQL Challenge — 10 Minutes</h3><span>Simulate real interview</span></div>
+        <div class="lesson-card-body">
+          <p>Set a timer for <strong>10 minutes</strong>. Write all 3 queries without looking at notes. This is how companies test SQL in interviews.</p>
+          <div class="scenario-block">
+            <h4>Interview Task — NordTech SQL Assessment</h4>
+            <p>1. Count how many tickets each agent has, ordered by most tickets first.<br>
+            2. Find all open tickets in the 'Network' or 'Software' category.<br>
+            3. Show the number of tickets per status AND per priority in one query.</p>
+          </div>
+          <div class="sql-block" style="position:relative;"><button class="copy-btn" onclick="copySQL(this)">Copy Answers</button>
+            <span class="cmt">-- Answer 1</span><br>
+            <span class="kw">SELECT</span> <span class="col">agent_id</span>, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="col">tickets</span> <span class="kw">FROM</span> <span class="tbl">tickets</span> <span class="kw">GROUP BY</span> <span class="col">agent_id</span> <span class="kw">ORDER BY</span> <span class="col">tickets</span> <span class="kw">DESC</span>;<br><br>
+            <span class="cmt">-- Answer 2</span><br>
+            <span class="kw">SELECT</span> <span class="col">*</span> <span class="kw">FROM</span> <span class="tbl">tickets</span> <span class="kw">WHERE</span> <span class="col">status</span> = <span class="str">'open'</span> <span class="kw">AND</span> <span class="col">category</span> <span class="kw">IN</span> (<span class="str">'Network'</span>, <span class="str">'Software'</span>);<br><br>
+            <span class="cmt">-- Answer 3</span><br>
+            <span class="kw">SELECT</span> <span class="col">status</span>, <span class="col">priority</span>, <span class="fn">COUNT</span>(*) <span class="kw">AS</span> <span class="col">total</span><br>
+            <span class="kw">FROM</span> <span class="tbl">tickets</span><br>
+            <span class="kw">GROUP BY</span> <span class="col">status</span>, <span class="col">priority</span><br>
+            <span class="kw">ORDER BY</span> <span class="col">status</span>, <span class="col">total</span> <span class="kw">DESC</span>;
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end interview -->
+
+  </div><!-- end main-content -->
+</div><!-- end layout -->
+
+<script>
+// NAVIGATION
+function showSection(name) {
+  document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+  const el = document.getElementById('section-' + name);
+  if (el) { el.classList.add('active'); el.scrollIntoView({behavior:'smooth', block:'start'}); }
+}
+
+function setNavActive(name) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  const mapping = { 'assessment':'📋 Assessment','roadmap':'🗺️ Roadmap','company':'🏢 MockCo','day1':'Day 1','day2':'Day 2','day3':'Day 3','day4':'Day 4','day5':'Day 5','day6':'Day 6','day7':'Day 7','interview':'🎤 Interview Prep' };
+  document.querySelectorAll('.nav-btn').forEach(b => { if(b.textContent.trim().includes(mapping[name]?.trim()||name)) b.classList.add('active'); });
+}
+
+function setActive(btn) {
+  btn.closest('.sidebar').querySelectorAll('.day-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// COPY SQL
+function copySQL(btn) {
+  const block = btn.closest('.sql-block');
+  const text = block.innerText.replace('Copy\n','').replace('Copy Answer\n','').replace('Copy All\n','').replace('Copy Answers\n','').trim();
+  navigator.clipboard.writeText(text).then(() => { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = 'Copy', 1500); });
+}
+
+// CHECK TRY
+function checkTry1() {
+  const val = document.getElementById('try1').value.toLowerCase();
+  document.getElementById('result1').style.display = 'block';
+}
+
+function showResult(id) {
+  document.getElementById(id).style.display = 'block';
+}
+
+// TOGGLE INTERVIEW Q
+function toggleQ(head) {
+  const body = head.nextElementSibling;
+  const arrow = head.querySelector('span');
+  if (body.style.display === 'block') { body.style.display = 'none'; arrow.textContent = '▼'; }
+  else { body.style.display = 'block'; arrow.textContent = '▲'; }
+}
+
+// MARK DONE
+let completedDays = JSON.parse(localStorage.getItem('nordtech_days') || '[]');
+function markDone(day) {
+  if (!completedDays.includes(day)) { completedDays.push(day); localStorage.setItem('nordtech_days', JSON.stringify(completedDays)); }
+  updateProgress();
+  alert('✅ Day ' + day + ' marked complete! Great work. Moving to next day...');
+}
+function updateProgress() {
+  const pct = Math.round((completedDays.length / 30) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = 'Day ' + completedDays.length + '/30';
+}
+updateProgress();
+
+// Start on assessment
+showSection('assessment');
+</script>
+</body>
+</html>
